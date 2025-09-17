@@ -68,6 +68,19 @@ dotnet run --project Cli --   --data ../DATA   --out ../OUTPUT/IndexContainment.
   - Summary block per threshold: `n, hits, hitRate, WilsonLower95, p99ViolationRatio, median time-to-low`.
   - Daily compact table (filterable).
 
+## Backfill (Stooq) — Quick Start
+
+Fetch intraday bars from **Stooq** (public endpoints), then split into yearly CSVs our pipeline can read.
+
+```bash
+cd ZEN
+dotnet build
+dotnet run --project Cli -- backfill stooq   --symbols SPY,QQQ,IWM,DIA   --interval 1   --out ../DATA   --throttle-ms 1200   --retries 3
+```
+
+- `--interval` can be `1,5,15,60` (minutes). Our analytics will resample to the composite cadence (5m/15m/5m) with `--resample auto`.
+- This is **best-effort**: Stooq intraday history depth varies and may not cover many years. Use IBKR for **incremental daily top-ups**.
+
 ## Notes
-- Keep each symbol’s 25‑year dataset within a single sheet (Excel limit ~1,048,576 rows — you’ll be far below).
+- Keep each symbol's 25‑year dataset within a single sheet (Excel limit ~1,048,576 rows — you'll be far below).
 - If your minute feed has slightly different session coverage on half‑days, loader will skip days with <20 bars (log).

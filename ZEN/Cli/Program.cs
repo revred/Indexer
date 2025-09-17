@@ -1,4 +1,6 @@
 using IndexContainment.Data;
+using IndexContainment.Data.Backfill;
+using IndexContainment.Data.Providers;
 using IndexContainment.Analysis;
 using IndexContainment.ExcelIO;
 using IndexContainment.Core.Models;
@@ -24,6 +26,10 @@ static ResampleMode ParseResample(string s) => s?.ToLowerInvariant() switch
 
 int Main(string[] args)
 {
+    if (args.Length > 0 && args[0].Equals("backfill", StringComparison.OrdinalIgnoreCase))
+        return BackfillMain(args.Skip(1).ToArray());
+
+    // === existing analytics path ===
     string dataRoot = GetArg(args, "--data", "../DATA");
     string outPath  = GetArg(args, "--out",  $"../OUTPUT/IndexContainment_{DateTime.UtcNow:yyyyMMdd}.xlsx");
     string symsArg  = GetArg(args, "--symbols", "");
@@ -47,7 +53,7 @@ int Main(string[] args)
     foreach (var sym in symbols)
     {
         var integrity = new List<string>();
-        int loaded = 0, kept = 0, lowCov = 0, nonConf = 0, badOhlc = 0, early = 0;
+        int loaded = 0, kept = 0, lowCov = 0, badOhlc = 0, early = 0;
         int sumBars = 0;
 
         try
@@ -61,14 +67,11 @@ int Main(string[] args)
                 loaded++;
                 var resampled = CompositeResampler.ResampleIfNeeded(d, mode);
 
-                // quick OHLC sanity
                 bool ok = resampled.Bars.All(b => b.L <= Math.Min(b.O, Math.Min(b.H, b.C)) && b.H >= Math.Max(b.O, Math.Max(b.L, b.C)));
                 if (!ok) { badOhlc++; continue; }
 
-                // coverage
                 if (resampled.Bars.Count < 24) { lowCov++; continue; }
 
-                // early close heuristic
                 var sdet = SessionDetector.Detect(resampled);
                 if ((sdet.Close - sdet.Open) <= TimeSpan.FromHours(5)) early++;
 
@@ -97,6 +100,36 @@ int Main(string[] args)
     IndexContainment.ExcelIO.WorkbookWriter.Write(outPath, symbols, dataRoot, anchor, perSymbolRows);
     Console.WriteLine($"Wrote {outPath}");
     return 0;
+}
+
+int BackfillMain(string[] args)
+{
+    if (args.Length > 0 && args[0].Equals("stooq", StringComparison.OrdinalIgnoreCase))
+    {
+        string outRoot = GetArg(args, "--out", "../DATA");
+        string symsArg = GetArg(args, "--symbols", "SPY,QQQ,IWM,DIA");
+        string intervalS = GetArg(args, "--interval", "1");
+        string throttleS = GetArg(args, "--throttle-ms", "1200");
+        string retriesS  = GetArg(args, "--retries", "3");
+
+        if (!int.TryParse(intervalS, out var interval)) interval = 1;
+        if (!int.TryParse(throttleS, out var throttleMs)) throttleMs = 1200;
+        if (!int.TryParse(retriesS, out var retries)) retries = 3;
+
+        var symbols = symsArg.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        int files = 0;
+        foreach (var sym in symbols)
+        {
+            Console.WriteLine($"[stooq] fetching {sym} interval={interval}m ...");
+            files += BackfillRunner.RunStooqAsync(outRoot, sym, interval, TimeSpan.FromMilliseconds(throttleMs), retries).GetAwaiter().GetResult();
+        }
+        Console.WriteLine($"[stooq] wrote {files} yearly files.");
+        return 0;
+    }
+
+    Console.Error.WriteLine("Usage: backfill stooq --symbols SPY,QQQ --interval 1 --out ../DATA [--throttle-ms 1200] [--retries 3]");
+    return 2;
 }
 
 return Main(args);

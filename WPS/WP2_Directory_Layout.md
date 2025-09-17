@@ -29,3 +29,9 @@ Standardize folders to simplify ingestion, builds, and artifact location (RichMo
 
 **Definition of Done**
 - Readme reflects the layout and build steps.
+
+## Backfill (Stooq) Notes
+
+- Provider: `stooq` with tolerant CSV parsing and rate limiting.
+- One request per symbol/interval; data is then split by calendar year into `DATA/<SYMBOL>/<SYMBOL>_YYYY.csv`.
+- Expect limited historical depth; treat as seed data and validate with `OUTPUT/Integrity_<SYMBOL>.txt`.
