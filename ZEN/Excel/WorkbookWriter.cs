@@ -46,17 +46,16 @@ public static class WorkbookWriter
         ws.Cell(r,5).Value = "WilsonLower95"; ws.Cell(r,6).Value = "p99ViolationRatio"; ws.Cell(r,7).Value = "MedianTimeToLow(min)";
         r++;
 
-        foreach (var (label, X) in Thresholds.Grid)
+        var summaries = SummaryBuilder.Build(rows);
+        foreach (var s in summaries)
         {
-            var sum = SummaryBuilder.Build(rows).FirstOrDefault(s => s.Threshold == label);
-            if (sum is null) continue;
-            ws.Cell(r,1).Value = sum.Threshold;
-            ws.Cell(r,2).Value = sum.N;
-            ws.Cell(r,3).Value = sum.Hits;
-            ws.Cell(r,4).Value = sum.HitRate;
-            ws.Cell(r,5).Value = sum.WilsonLower95;
-            ws.Cell(r,6).Value = (double)sum.P99ViolationRatio;
-            ws.Cell(r,7).Value = sum.MedianTimeToLow;
+            ws.Cell(r,1).Value = s.Threshold;
+            ws.Cell(r,2).Value = s.N;
+            ws.Cell(r,3).Value = s.Hits;
+            ws.Cell(r,4).Value = s.HitRate;
+            ws.Cell(r,5).Value = s.WilsonLower95;
+            ws.Cell(r,6).Value = (double)s.P99ViolationRatio;
+            ws.Cell(r,7).Value = s.MedianTimeToLow;
             r++;
         }
 

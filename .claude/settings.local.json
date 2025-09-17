@@ -8,7 +8,9 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet test)"
     ],
     "deny": [],
     "ask": []

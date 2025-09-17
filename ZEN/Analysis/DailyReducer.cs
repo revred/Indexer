@@ -16,8 +16,9 @@ public static class DailyReducer
             var open = d.Bars.First().O;
             var gap  = (open / d.PrevClose) - 1m;
 
-            var anchorBar = d.Bars.Where(b => b.T.TimeOfDay <= anchor).LastOrDefault();
-            if (anchorBar is null) continue;
+            var anchorBars = d.Bars.Where(b => b.T.TimeOfDay <= anchor).ToList();
+            if (anchorBars.Count == 0) continue;
+            var anchorBar = anchorBars.Last();
 
             var after = d.Bars.Where(b => b.T.TimeOfDay > anchor).ToList();
             if (after.Count == 0) continue;
