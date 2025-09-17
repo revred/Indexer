@@ -100,6 +100,35 @@ dotnet run --project Cli -- backfill theta   --symbols SPX,NDX,SPY,QQQ   --from 
 
 Defaults are in `MARKET/theta.config.json` (host, port, format, throttle, retries) and can be overridden by flags.
 
+## Data Products (Tiered)
+
+**Raw minutes** → `DATA/<SYMBOL>/<SYMBOL>_YYYY.csv` (from ThetaData/IBKR)
+
+**Composite intraday (5m/15m/5m)** → internal (resampled on the fly)
+
+**Daily reductions** → `DAILY/<SYMBOL>.csv`
+
+**Summaries** → `SUMMARIES/summary_<SYMBOL>.json` + `SUMMARIES/leaderboard.json`
+
+**Exceptions** → `EXCEPTIONS/<SYMBOL>_vr_worst.csv`
+
+**Excel** → `OUTPUT/StrategyBook.xlsx` (summaries only) and (optional) `OUTPUT/sheets/<SYMBOL>.xlsx`
+
+### CLI (exports)
+```bash
+dotnet run --project ZEN/Cli --   --data ../DATA   --out  ../OUTPUT/StrategyBook.xlsx   --symbols SPX,NDX,VIX,XAUUSD,CL,QQQ,SPY   --anchor 10:00   --resample auto   --xl-mode both   --emit-daily true   --emit-summaries true   --exceptions-top 25
+```
+
+- `--xl-mode strategy|symbol|both` controls Excel outputs.
+
+- `--emit-daily` writes `DAILY/<SYMBOL>.csv`.
+
+- `--emit-summaries` writes `SUMMARIES/*.json` + `leaderboard.json`.
+
+- `--exceptions-top N` writes `EXCEPTIONS/<SYMBOL>_vr_worst.csv` with top-N violations.
+
+- Works for **indices** (SPX, NDX), **volatility** (VIX), **commodities**/**FX** (XAUUSD), **oil** (CL or an index/ETF like USO), etc.
+
 ## Notes
 - Keep each symbol's 25‑year dataset within a single sheet (Excel limit ~1,048,576 rows — you'll be far below).
 - If your minute feed has slightly different session coverage on half‑days, loader will skip days with <20 bars (log).
