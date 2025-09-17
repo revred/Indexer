@@ -81,6 +81,25 @@ dotnet run --project Cli -- backfill stooq   --symbols SPY,QQQ,IWM,DIA   --inter
 - `--interval` can be `1,5,15,60` (minutes). Our analytics will resample to the composite cadence (5m/15m/5m) with `--resample auto`.
 - This is **best-effort**: Stooq intraday history depth varies and may not cover many years. Use IBKR for **incremental daily top-ups**.
 
+## Backfill (ThetaData) — Quick Start
+
+**Prereqs**: Run **Theta Terminal v3** locally (default host `localhost`, port `25503`) with your `INDEX_PRO` entitlements.
+
+```bash
+cd ZEN
+dotnet build
+dotnet run --project Cli -- backfill theta   --symbols SPX,NDX,SPY,QQQ   --from 2004-01-01   --to 2025-09-17   --interval 1m   --out ../DATA   --throttle-ms 250   --retries 3
+```
+
+- Enumerates trade dates via `/v3/index/list/dates?symbol=...`.
+- Fetches OHLC via `/v3/index/history/ohlc?symbol=...&start_date=YYYYMMDD&end_date=YYYYMMDD&interval=1m&format=csv`.
+- Writes `DATA/<SYMBOL>/<SYMBOL>_YYYY.csv` → then run our analytics/resampler:
+  ```bash
+  dotnet run --project Cli --     --data ../DATA     --out ../OUTPUT/IndexContainment.xlsx     --symbols SPX,NDX,SPY,QQQ     --anchor 10:00     --resample auto
+  ```
+
+Defaults are in `MARKET/theta.config.json` (host, port, format, throttle, retries) and can be overridden by flags.
+
 ## Notes
 - Keep each symbol's 25‑year dataset within a single sheet (Excel limit ~1,048,576 rows — you'll be far below).
 - If your minute feed has slightly different session coverage on half‑days, loader will skip days with <20 bars (log).

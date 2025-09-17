@@ -29,3 +29,14 @@ Implement robust, streaming CSV ingestion with day grouping and RTH sanity check
 
 **Definition of Done**
 - `CsvLoader.LoadAll()` passes Tests/ReducerTests and synthetic regressions.
+
+# WP3 — Backfill Providers (ThetaData)
+
+**ThetaData (preferred for indices):**
+- Uses local **Theta Terminal v3** endpoints:
+  - `/v3/index/list/dates?symbol=SYMBOL` to enumerate available dates.
+  - `/v3/index/history/ohlc?symbol=SYMBOL&start_date=YYYYMMDD&end_date=YYYYMMDD&interval=1m` to fetch intraday OHLC.
+- Writes to `DATA/<SYMBOL>/<SYMBOL>_YYYY.csv` in the canonical schema.
+- Throttling and retries are configurable; defaults live in `MARKET/theta.config.json`.
+
+If the terminal isn't running, the backfill command fails fast—start it and re-run.

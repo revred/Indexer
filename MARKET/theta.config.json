@@ -1,0 +1,8 @@
+{
+  "host": "localhost",
+  "port": 25503,
+  "format": "csv",
+  "throttle_ms": 250,
+  "retries": 3,
+  "timezone": "America/New_York"
+}
