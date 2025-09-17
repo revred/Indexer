@@ -1,0 +1,23 @@
+# Build
+bin/
+obj/
+/OUTPUT/
+/.vs/
+/.idea/
+
+# User data
+/DATA/
+/DATA/**
+
+# OS
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+*.swp
+*.tmp
+*.log
+*.lock
+
+# Excel temporary
+~$*
