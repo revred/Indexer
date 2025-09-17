@@ -16,9 +16,11 @@ Define an unambiguous, vendor‑agnostic CSV schema for aggregated RTH minute ba
 - Volume: integer (0 allowed).
 - Header row mandatory.
 
-**Aggregation**
-- Target ≈ 30 bars per RTH day (e.g., 13‑minute bars).
-- For half-days, ≥ 20 bars; else mark as **Skipped: LowCoverage**.
+**Cadence**: 5m (first hour), 15m (mid), 5m (last hour). Session boundaries are **derived from the data** per day (first and last timestamps).
+
+**Early Closes**: If `close - open < 6.5h`, last-hour window still uses `[close−60m, close]` and the mid window shrinks. If there is < 2h total session, mid window collapses (only first/last windows are used).
+
+**Validation**: If input is minute bars → resample. If already aggregated → validate that bar end-times match the composite windows; else **Skip: NonConformingCadence**.
 
 **Constraints & Validation**
 - Monotone non‑decreasing times within a day.

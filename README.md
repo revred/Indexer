@@ -34,6 +34,23 @@ IndexContainment/
 - Threshold grid: **{1.0%, 1.5%, 2.0%, 3.0%, 4.0%}**.
 - Containment holds if **extra drop ≤ ½·|X|** after 10:00.
 
+## Intraday Cadence (Composite)
+We use a **composite sampling** per trading day:
+- **First Hour:** 5-minute bars from session open to open+60m
+- **Mid Session:** 15-minute bars from open+60m to close−60m
+- **Last Hour:** 5-minute bars from close−60m to session close
+
+The session open/close are **detected from the data** (first and last bar timestamps), so **half-days and early closes** are handled automatically. Holidays yield **no data** and are naturally skipped.
+
+### Resampling
+Provide either minute bars or already-aggregated bars. The CLI supports:
+- `--resample auto`  (default): detects minute bars and converts to composite cadence.
+- `--resample composite`: force composite resampling.
+- `--resample none`: treat input as already aggregated.
+
+## Integrity Logs
+The CLI writes a small integrity report per symbol to `OUTPUT/Integrity_<SYMBOL>.txt` with counters for: Days loaded, Kept, Skipped (reasons), Early-close days detected, and Median bars/day post-resample.
+
 ## Build & Run
 ```bash
 # .NET 8+
@@ -41,7 +58,8 @@ dotnet --version
 
 cd ZEN
 dotnet build
-dotnet run --project Cli --   --data ../DATA   --out ../OUTPUT/IndexContainment.xlsx   --symbols SPY,QQQ,IWM,DIA   --anchor 10:00
+dotnet test
+dotnet run --project Cli --   --data ../DATA   --out ../OUTPUT/IndexContainment.xlsx   --symbols SPY,QQQ,IWM,DIA   --anchor 10:00   --resample auto
 ```
 
 ## Output
